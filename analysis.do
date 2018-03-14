@@ -6,7 +6,7 @@ set more off, permanently
 
 		1	Dofiles
 		2	Logfiles
-		3	Raw		-- Raw data located here!
+		3	Raw		-- Do not touch!
 		4	Tables
 		5	Graphs
 		6	Data
@@ -14,15 +14,14 @@ set more off, permanently
 
 cd "C:\Users\Philipp\GDrive\VWL\NEPS Dropout\Data_SC3"
 cap log using Logfiles\analysis_sc3_7-0-0.txt, text replace
-use Data\analysis
+use Data\analysis //analysis.do is main file
 
 
 ******************************* DATA ANALYSIS *******************************
 *------------------------------------------------------------------------------------------------------------
 * Control Variables
 *------------------------------------------------------------------------------------------------------------
-global basic age_std age_squared_std migrant 
-	//health_eval_std east_west  
+global basic age_std age_squared_std migrant health_eval_std east_west  
 global ses low_ses malexlow_ses //single_parent edu_*_years_std hh_siblingspresent hh_size
 	//grad_mother_std grad_father_std single_mother single_father hh_unknown
 	//low_income_male gradm_male_std gradf_male_std child_parents_attitude_std family_sa_std

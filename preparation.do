@@ -6,9 +6,9 @@ set more off, permanently
 
 		1	Dofiles
 		2	Logfiles
-		3	Raw		-- Raw data located here!
+		3	Raw		-- Raw data located here! Save in Data folder
 		4	Tables
-		5	Graphs
+		5	Graphs, Figures
 		6	Data
 */
 
@@ -19,15 +19,85 @@ use Data\foundation
 
 ******************************* DATA PREPARATION *******************************
 *------------------------------------------------------------------
+*	Student Gender
+*------------------------------------------------------------------
+
+g male1 = .
+	replace male1 = 1 if tx80501 == 1
+	replace male1 = 0 if tx80501 == 2
+	la var male1 "Gender as specified in class list"
+
+g male2 = .
+	replace male2 = 1 if t700031 == 1
+	replace male2 = 0 if t700031 == 2
+	la var male2 "Gender as reported by student"
+
+g male3 = .
+	replace male3 = 1 if p700010 == 1
+	replace male3 = 0 if p700010 == 2
+	la var male3 "Gender as reported by parent"
+
+*Consistency check for gender variable 
+g gender_check = 0
+
+foreach i of numlist 2/3 {
+	replace gender_check = 1 if male`i' != male1 & male`i' < . & male1 < .
+	replace gender_check = 1 if male`i' != male2 & male`i' < . & male2 < .
+}
+
+*Count nomissings over male*
+egen n_help = rownonmiss(male*) if gender_check == 1
+egen male_help = rowtotal(male*) if gender_check == 1, missing 
+g ratio_help = male_help/n_help
+g gender_warning = 1 if ratio_help == 0.5
+
+
+g male = .
+foreach i of numlist 1/3 {
+	replace male = male`i' if male`i' < . & gender_check == 0
+}
+
+replace male = 1 if ratio_help > 0.5 & ratio_help < .
+replace male = 0 if ratio_help < 0.5 & ratio_help < .
+
+*Take report by parents or if not available by class list
+replace male = male3 if male3 < . & gender_warning == 1
+replace male = male1 if male1 < . & gender_warning == 1
+
+bys ID_t (wave): replace male = male[_n-1] if male[_n] == . //Make available through all waves
+bys ID_t (wave): g xcheck = (male[_n] != male[_n-1] & wave > 1) //check for changes of gender over waves
+	bys ID_t (wave): replace xcheck = xcheck[_n-1] if xcheck[_n-1] == 1 & xcheck[_n] != 1
+	bys ID_t (wave): replace xcheck = xcheck[7] //make xcheck indicator for all waves
+//bys ID_t (wave): egen coug1 = count(male4) if male4 == 1 & xcheck == 1 
+//bys ID_t (wave): egen coug0 = count(male4) if male4 == 0 & xcheck == 1 
+	//replace male = 1 if coug1 > 1 & coug1 < . 
+	//replace male = 0 if coug0 > 1 & coug0 < .
+
+drop xcheck
+
+bys ID_t (wave): g xcheck = (male[_n] != male[_n-1] & wave > 1) //check for changes of gender over waves
+	bys ID_t (wave): replace xcheck = xcheck[_n-1] if xcheck[_n-1] == 1 & xcheck[_n] != 1
+	bys ID_t (wave): replace xcheck = xcheck[7] //make xcheck indicator for all waves
+
+
+la var male "male"
+
+drop n_help male_help ratio_help gender_warning gender_check male1-male3 xcheck //coug*
+
+
+
+
+
+*------------------------------------------------------------------
 *	Panel Information
 *------------------------------------------------------------------
 **** Attrition ****
 *How many surveyed in wave 1 are found in wave 6?
-g avail_w1 = 1 if tx80521 == 1 & wave == 1
+g avail_w1 = 1 if tx80522 == 1 & wave == 3
 	replace avail_w1 = 0 if tx80521 == 0 & wave == 1
 	bys ID_t (wave): replace avail_w1 = avail_w1[1] 
 	
-g avail_w7 = 1 if tx80521 == 1 & wave == 7
+g avail_w2 = 1 if tx80521 == 1 & wave == 7
 	replace avail_w7 = 0 if tx80521 == 0 & wave == 7
 	bys ID_t (wave): replace avail_w7 = avail_w7[7] 
 
@@ -164,71 +234,6 @@ g grades_skipped = 1 if p726000 == 1
 *------------------------------------------------------------------
 *	Student 
 *------------------------------------------------------------------
-
-************ Gender dummies ************ 
-g male1 = .
-	replace male1 = 1 if tx80501 == 1
-	replace male1 = 0 if tx80501 == 2
-	la var male1 "Gender as specified in class list"
-
-g male2 = .
-	replace male2 = 1 if t700031 == 1
-	replace male2 = 0 if t700031 == 2
-	la var male2 "Gender as reported by student"
-
-g male3 = .
-	replace male3 = 1 if p700010 == 1
-	replace male3 = 0 if p700010 == 2
-	la var male3 "Gender as reported by parent"
-
-*Consistency check for gender variable 
-g gender_check = 0
-
-foreach i of numlist 2/3 {
-	replace gender_check = 1 if male`i' != male1 & male`i' < . & male1 < .
-	replace gender_check = 1 if male`i' != male2 & male`i' < . & male2 < .
-}
-
-*Count nomissings over male*
-egen n_help = rownonmiss(male*) if gender_check == 1
-egen male_help = rowtotal(male*) if gender_check == 1, missing 
-g ratio_help = male_help/n_help
-g gender_warning = 1 if ratio_help == 0.5
-
-
-g male = .
-foreach i of numlist 1/3 {
-	replace male = male`i' if male`i' < . & gender_check == 0
-}
-
-replace male = 1 if ratio_help > 0.5 & ratio_help < .
-replace male = 0 if ratio_help < 0.5 & ratio_help < .
-
-*Take report by parents or if not available by class list
-replace male = male3 if male3 < . & gender_warning == 1
-replace male = male1 if male1 < . & gender_warning == 1
-
-bys ID_t (wave): replace male = male[_n-1] if male[_n] == . //Make available through all waves
-bys ID_t (wave): g xcheck = (male[_n] != male[_n-1] & wave > 1) //check for changes of gender over waves
-	bys ID_t (wave): replace xcheck = xcheck[_n-1] if xcheck[_n-1] == 1 & xcheck[_n] != 1
-	bys ID_t (wave): replace xcheck = xcheck[7] //make xcheck indicator for all waves
-//bys ID_t (wave): egen coug1 = count(male4) if male4 == 1 & xcheck == 1 
-//bys ID_t (wave): egen coug0 = count(male4) if male4 == 0 & xcheck == 1 
-	//replace male = 1 if coug1 > 1 & coug1 < . 
-	//replace male = 0 if coug0 > 1 & coug0 < .
-
-drop xcheck
-
-bys ID_t (wave): g xcheck = (male[_n] != male[_n-1] & wave > 1) //check for changes of gender over waves
-	bys ID_t (wave): replace xcheck = xcheck[_n-1] if xcheck[_n-1] == 1 & xcheck[_n] != 1
-	bys ID_t (wave): replace xcheck = xcheck[7] //make xcheck indicator for all waves
-
-
-la var male "male"
-
-drop n_help male_help ratio_help gender_warning gender_check male1-male3 xcheck //coug*
-
-
 
 
 ************ Age ************ 
