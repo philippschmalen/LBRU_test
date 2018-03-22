@@ -21,6 +21,14 @@ cap log using Logfiles\analysis_sc3_7-0-0.txt, text replace
 use Data\analysis //analysis.do is main file
 
 
+
+******************************* Test Box for me *******************************
+
+*--------------------------------------- EDU RISE
+quietly reg edu_rise $ses $nc $c $basic 
+	g e_rise = e(sample)
+	
+
 ******************************* DATA ANALYSIS *******************************
 *------------------------------------------------------------------------------------------------------------
 * Control Variables
