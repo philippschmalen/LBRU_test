@@ -18,6 +18,7 @@ use Data\foundation
 
 
 ******************************* DATA PREPARATION *******************************
+*In my opinion, gender coding should be a priority. Did we had the same thought?
 *------------------------------------------------------------------
 *	Student Gender
 *------------------------------------------------------------------
