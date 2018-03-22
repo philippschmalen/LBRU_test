@@ -12,7 +12,11 @@ set more off, permanently
 		6	Data
 */
 
-cd "C:\Users\Philipp\GDrive\VWL\NEPS Dropout\Data_SC3"
+*Define Path
+global path_phil = "C:\Users\Philipp\GDrive\VWL\NEPS Dropout\Data_SC3"
+global path_alexander = "C:\Users\Alexander\GDrive\VWL\NEPS Dropout\Data_SC3"
+
+cd $path_phil //path_alexander
 cap log using Logfiles\analysis_sc3_7-0-0.txt, text replace
 use Data\analysis //analysis.do is main file
 
