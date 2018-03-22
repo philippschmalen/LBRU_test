@@ -18,6 +18,8 @@ use Data\foundation
 
 
 ******************************* DATA PREPARATION *******************************
+*Gender should be first, then we can run some ttests by gender already!
+
 *------------------------------------------------------------------
 *	Student Gender
 *------------------------------------------------------------------
